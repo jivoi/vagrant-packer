@@ -1,0 +1,3 @@
+packer build win*.json
+cp vagrantfile* ./Vagrantfile
+vagrant up

@@ -1,0 +1,63 @@
+{
+  "builders": [
+    {
+      "type": "virtualbox-iso",
+      "iso_url": "./iso/en_windows_server_2012_r2_x64_dvd_2707946.iso",
+      "iso_checksum_type": "md5",
+      "iso_checksum": "0e7c09aab20dec3cd7eab236dab90e78",
+      "headless": true,
+      "boot_wait": "2m",
+      "ssh_username": "vagrant",
+      "ssh_password": "vagrant",
+      "ssh_wait_timeout": "4h",
+      "shutdown_command": "shutdown /s /t 10 /f /d p:4:1 /c \"Packer Shutdown\"",
+      "guest_os_type": "Windows2012_64",
+      "disk_size": 61440,
+      "floppy_files": [
+        "./answer_files/2012_r2/Autounattend.xml",
+        "./scripts/openssh.ps1",
+        "./scripts/oracle-cert.cer"
+      ],
+      "vboxmanage": [
+        [
+          "modifyvm",
+          "{{.Name}}",
+          "--memory",
+          "4096"
+        ],
+        [
+          "modifyvm",
+          "{{.Name}}",
+          "--cpus",
+          "2"
+        ]
+      ]
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "remote_path": "/tmp/script.bat",
+      "execute_command": "{{.Vars}} cmd /c C:/Windows/Temp/script.bat",
+      "scripts": [
+        "./scripts/vm-guest-tools.bat",
+        "./scripts/vagrant-ssh.bat",
+        "./scripts/enable-rdp.bat"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "rm -rf /tmp/*"
+      ]
+    }
+  ],
+  "post-processors": [
+    {
+      "type": "vagrant",
+      "keep_input_artifact": true,
+      "output": "windows_2012_r2_{{.Provider}}.box",
+      "vagrantfile_template": "vagrantfile-windows_2012_r2_virtualbox.template"
+    }
+  ]
+}
