@@ -1,3 +1,6 @@
+base on https://github.com/joefitzgerald/packer-windows
+
+use:
 packer build win*.json
 cp vagrantfile* ./Vagrantfile
 vagrant up
