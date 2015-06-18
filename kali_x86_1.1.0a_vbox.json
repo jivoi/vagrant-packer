@@ -1,0 +1,66 @@
+{
+    "variables": {
+    "vm_name": "kali-linux-1.1.0a-i386",
+    "disk_size": 20480,
+    "iso_checksum_type": "sha1",
+    "iso_checksum": "593f0e5b5db5e65102b12f047a7383740c5d7d7a",
+    "iso_url": "http://cdimage.kali.org/kali-1.1.0a/kali-linux-1.1.0a-i386.iso",
+    "box_name" : "kali-linux-1.1.0a-i386.box", 
+    "box_desc" : "Kali Linux 1.1.0a 32 Bit"
+  },
+  "description": "{{user `box_desc`}}",
+  "builders": [
+    {
+    "type": "virtualbox-iso",
+    "virtualbox_version_file": ".vbox_version",
+      "guest_os_type": "Debian",
+      "vm_name": "{{user `vm_name`}}",
+      "iso_url": "{{user `iso_url`}}",
+      "iso_checksum": "{{user `iso_checksum`}}",
+      "iso_checksum_type": "{{user `iso_checksum_type`}}",
+      "disk_size": "{{user `disk_size`}}",
+      "vboxmanage": [
+        ["modifyvm","{{.Name}}","--memory","1024"],
+        ["modifyvm","{{.Name}}","--cpus","1"]
+      ],
+      "boot_command": [
+        "<esc><wait>",
+        "install auto=true priority=critical preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg debian-installer=en_US locale=en_US kbd-chooser/method=us <wait>",
+        "netcfg/get_hostname={{ .Name }} netcfg/get_domain=localhost fb=false debconf/frontend=noninteractive console-setup/ask_detect=false <wait>", 
+        "console-keymaps-at/keymap=us keyboard-configuration/xkb-keymap=us <wait>","<enter><wait>"
+      ],
+      "boot_wait": "10s",
+      "guest_additions_path": "VBoxGuestAdditions_{{.Version}}.iso",
+      "http_directory": "http",
+      "shutdown_command": "echo 'vagrant' | sudo -S /sbin/shutdown -h 0",
+      "ssh_password": "vagrant",
+      "ssh_port": 22,
+      "ssh_username": "vagrant",
+      "ssh_wait_timeout": "10000s"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "scripts": [
+        "scripts/kali_base.sh",
+        "scripts/kali_vmtools.sh",
+        "scripts/kali_vagrant.sh",
+        "scripts/kali_ruby.sh"
+      ],
+      "pause_before": "10s",
+      "override": {
+        "virtualbox-iso": {
+          "execute_command": "echo 'vagrant'|sudo -S bash '{{.Path}}'"
+        }
+      }
+    }
+  ],
+  "post-processors": [  
+    {
+      "type": "vagrant",
+      "output" : "{{user `box_name`}}",
+    	"keep_input_artifact": true
+    }
+  ]
+}
